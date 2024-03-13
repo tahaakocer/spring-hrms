@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
@@ -62,20 +61,24 @@ public class JobSeekerManager implements JobSeekerService {
 
 		if(isRealPerson) {
 			this.jobSeekerDao.save(jobSeeker);
-	        ConfirmationToken confirmationToken = new ConfirmationToken();
-	        confirmationToken.setConfirmationToken(UUID.randomUUID().toString()); // Rastgele token oluşturuluyor
-	        confirmationTokenRepository.save(confirmationToken);
+			
+			jobSeeker = this.jobSeekerDao.getByTcNo(jobSeeker.getTcNo());
+			ConfirmationToken confirmationToken = new ConfirmationToken(jobSeeker);
 
-	        SimpleMailMessage mailMessage = new SimpleMailMessage();
-	        mailMessage.setTo(jobSeeker.getEmail());
-	        mailMessage.setSubject("Complete Registration!");
-	        mailMessage.setText("To confirm your account, please click here : "
-	                +"http://localhost:8085/confirm-account?token="+confirmationToken.getConfirmationToken());
-	        emailService.sendEmail(mailMessage);
+            confirmationTokenRepository.save(confirmationToken);
 
-	        System.out.println("Confirmation Token: " + confirmationToken.getConfirmationToken());
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(jobSeeker.getEmail());
+            mailMessage.setSubject("Complete Registration!");
+            mailMessage.setFrom("auto.visaappointment@gmail.com");
+            mailMessage.setText("To confirm your account, please click here : "
+            +"http://localhost:8080/confirm-account?token="+confirmationToken.getConfirmationToken());
+            
+            emailService.sendEmail(mailMessage);
+            
+            return new SuccessResult("Verify email by the link sent on your email address");
+            
 
-			return new SuccessResult("Verify email by the link sent on your email address");
 		}
 		else {
 			return new ErrorResult("TC no geçerli değil!");
@@ -90,19 +93,32 @@ public class JobSeekerManager implements JobSeekerService {
 
 	@Override
 	public Result delete(int id) {
+		ConfirmationToken token = confirmationTokenRepository.findByJobSeeker_JobSeekerId(id);
+		confirmationTokenRepository.deleteById(token.getTokenId());
 		jobSeekerDao.deleteById(id);
+		
 		return new SuccessResult("Silindi.");
 	}
 
 	@Override
-    public ResponseEntity<?> confirmEmail(String confirmationToken) {
+    public Result confirmEmail(String confirmationToken) {
         ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
 
         if(token != null)
         {
-        
-            return ResponseEntity.ok("Email verified successfully!");
+        	JobSeeker jobSeeker = jobSeekerDao.findByEmailIgnoreCase(token.getJobSeeker().getEmail());
+        	jobSeeker.setVerified(true);
+        	jobSeekerDao.save(jobSeeker);
+            return new SuccessResult("Email verified successfully!");
         }
-        return ResponseEntity.badRequest().body("Error: Couldn't verify email");
+        else {
+        	return new ErrorResult("The link is invalid or broken!");
+        }
     }
+
+	@Override
+	public JobSeeker findByEmailIgnoreCase(String emailId) {
+		
+		return jobSeekerDao.findByEmailIgnoreCase(emailId);
+	}
 }

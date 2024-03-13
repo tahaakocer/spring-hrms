@@ -14,5 +14,7 @@ public interface JobSeekerService {
 	Result delete(int id);
 	DataResult<List<JobSeeker>> getAll();
 	//email verification
-    ResponseEntity<?> confirmEmail(String confirmationToken);
+    Result confirmEmail(String confirmationToken);
+	JobSeeker findByEmailIgnoreCase(String emailId);
+
 }

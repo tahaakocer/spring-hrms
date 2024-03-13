@@ -22,8 +22,8 @@ public class JobSeeker {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	private Integer id;
+	@Column(name = "jobseeker_id")
+	private Integer jobSeekerId;
 	
 	@Column(name = "first_name")
 	private String firstName;
@@ -45,4 +45,6 @@ public class JobSeeker {
 	
 	@Column(name = "email_verified")
 	private boolean isVerified;
+	
+
 }

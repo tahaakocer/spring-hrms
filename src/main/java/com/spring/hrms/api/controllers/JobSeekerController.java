@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spring.hrms.business.abstracts.JobSeekerService;
+import com.spring.hrms.core.utilities.results.ErrorResult;
 import com.spring.hrms.core.utilities.results.Result;
+import com.spring.hrms.core.utilities.results.SuccessResult;
+import com.spring.hrms.dataAccess.abstracts.ConfirmationTokenDao;
+import com.spring.hrms.entities.concretes.ConfirmationToken;
 import com.spring.hrms.entities.concretes.JobSeeker;
 
 @RestController
@@ -40,7 +44,13 @@ public class JobSeekerController {
 
 	@GetMapping("/getAll")
 	public Result getAll() {
+	
 		return this.service.getAll();
 	}
 
+	@RequestMapping(value="/confirm-account", method= {RequestMethod.GET, RequestMethod.POST})
+    public Result confirmUserAccount(@RequestParam String confirmationToken)
+    {
+		return this.service.confirmEmail(confirmationToken);
+    }
 }

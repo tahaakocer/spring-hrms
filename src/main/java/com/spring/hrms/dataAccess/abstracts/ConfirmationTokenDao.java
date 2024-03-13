@@ -9,5 +9,4 @@ import com.spring.hrms.entities.concretes.ConfirmationToken;
 public interface ConfirmationTokenDao extends JpaRepository<ConfirmationToken, Long>{
 	
     ConfirmationToken findByConfirmationToken(String confirmationToken);
-
-}
+    ConfirmationToken findByJobSeeker_JobSeekerId(int jobSeekerId);}
